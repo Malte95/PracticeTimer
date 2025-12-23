@@ -77,11 +77,14 @@ namespace PracticeTimer
             Console.WriteLine("\nStarting session...");
             Console.WriteLine("Controls: [p] pause/resume, [q] quit\n");
 
-            foreach (var current in session.Phases)
+            for (int i = 0; i < session.Phases.Count; i++)
+
             {
+                var current = session.Phases[i];
                 int remainingSeconds = current.DurationMinutes * 60;
                 bool isPaused = false;
 
+                Console.WriteLine($"Phase {i + 1}/{session.Phases.Count}");
                 Console.WriteLine($"Starting: {current.Name} ({current.DurationMinutes} min)");
 
                 while (remainingSeconds > 0)
