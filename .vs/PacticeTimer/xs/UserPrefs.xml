@@ -1,0 +1,16 @@
+﻿<Properties StartupConfiguration="{E9C5C4EE-065F-466F-88DB-F89ACAD4A473}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PracticeSession.cs">
+    <Files>
+      <File FileName="PacticeTimer/Program.cs" Line="1" Column="1" />
+      <File FileName="Phase.cs" Line="6" Column="1" />
+      <File FileName="PracticeSession.cs" Line="1" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.ItemProperties.PacticeTimer FirstBuild="True" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
