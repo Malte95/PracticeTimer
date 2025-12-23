@@ -11,6 +11,8 @@ namespace PracticeTimer
             var session = ReadPhasesFromConsole();
 
             PrintPhases(session);
+            Console.WriteLine($"\nTotal duration: {session.GetTotalDuration()}");
+
 
             RunSession(session);
 
