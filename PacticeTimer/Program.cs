@@ -77,7 +77,8 @@ namespace PracticeTimer
             }
 
             Console.WriteLine("\nStarting session...");
-            Console.WriteLine("Controls: [p] pause/resume, [q] quit\n");
+            Console.WriteLine("Controls: [p] pause/resume, [r] restart phase, [q] quit\n");
+
 
             for (int i = 0; i < session.Phases.Count; i++)
 
@@ -87,6 +88,10 @@ namespace PracticeTimer
                 bool isPaused = false;
 
                 Console.WriteLine($"Phase {i + 1}/{session.Phases.Count}");
+
+                // Audio feedback on phase change (terminal bell, platform-dependent)
+                Console.Write("\a");
+
                 Console.WriteLine($"Starting: {current.Name} ({current.DurationMinutes} min)");
 
                 while (remainingSeconds > 0)
@@ -106,6 +111,23 @@ namespace PracticeTimer
                             Console.WriteLine("Session aborted.");
                             return;
                         }
+                        else if (key.KeyChar == 'r')
+                        {
+                            Console.WriteLine();
+                            Console.WriteLine("Restart current session ? (y/n)");
+
+                            var confirmKey = Console.ReadKey(true);
+
+                            if(confirmKey.KeyChar == 'y')
+                            {
+                                remainingSeconds = current.DurationMinutes * 60;
+                                Console.WriteLine("Phase restarted.");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Restart cancelled.");
+                            }
+                        }
                     }
 
                     if (!isPaused)
@@ -121,6 +143,10 @@ namespace PracticeTimer
                 }
 
                 Console.WriteLine();
+
+                // Audio feedback on phase change (terminal bell, platform-dependent)
+                Console.Write("\a");
+
                 Console.WriteLine($"Phase finished: {current.Name}\n");
             }
 
