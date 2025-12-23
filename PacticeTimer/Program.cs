@@ -2,51 +2,15 @@
 using System.Threading;
 
 
-namespace PacticeTimer
+namespace PracticeTimer
 {
     class Program
     {
         static void Main(string[] args)
         {
-            var session = new PracticeSession();
+            var session = ReadPhasesFromConsole();
 
-            while(true)
-            {
-                Console.Write("Phase name (or 'start'): ");
-                string? name = Console.ReadLine();
-
-                if(name == "start")
-                {
-                    break;
-                }
-
-                int minutes;
-
-                while(true)
-                {
-                    Console.Write("Duration in minutes: ");
-                    string? inpute = Console.ReadLine();
-
-                    if(int.TryParse(inpute, out minutes) && minutes > 0)
-                    {
-                        break;
-                    }
-
-                    Console.WriteLine("Please enter a valid number greater than 0.");
-                }
-
-                var phase = new Phase
-                {
-                    Name = name,
-                    DurationMinutes = minutes
-                };
-
-                session.AddPhase(phase);
-
-                Console.WriteLine($"Phase entered: {name}");
-            }
-
-            Console.WriteLine("\n--- Session Phase ---");
+            Console.WriteLine("\n--- Session Phases ---");
 
             foreach (var p in session.Phases)
             {
@@ -111,5 +75,46 @@ namespace PacticeTimer
             }
 
         }
+
+        static PracticeSession ReadPhasesFromConsole()
+        {
+            var session = new PracticeSession();
+
+            while (true)
+            {
+                Console.Write("Phase name (or 'start'): ");
+                string? name = Console.ReadLine();
+
+                if (name == null)
+                    continue;
+
+                if (name.Trim().ToLower() == "start")
+                    break;
+
+                int minutes;
+                while (true)
+                {
+                    Console.Write("Duration in minutes: ");
+                    string? input = Console.ReadLine();
+
+                    if (int.TryParse(input, out minutes) && minutes > 0)
+                        break;
+
+                    Console.WriteLine("Please enter a valid number greater than 0.");
+                }
+
+                var phase = new Phase
+                {
+                    Name = name,
+                    DurationMinutes = minutes
+                };
+
+                session.AddPhase(phase);
+                Console.WriteLine($"Phase added: {phase.Name}");
+            }
+
+            return session;
+        }
+
     }
 }
