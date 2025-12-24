@@ -94,6 +94,12 @@ namespace PracticeTimer
 
                 Console.WriteLine($"Starting: {current.Name} ({current.DurationMinutes} min)");
 
+                if(i < session.Phases.Count -1)
+                {
+                    var next = session.Phases[i + 1];
+                    Console.WriteLine($"Next: {next.Name} {next.DurationMinutes}");
+                }
+
                 while (remainingSeconds > 0)
                 {
                     if (Console.KeyAvailable)
