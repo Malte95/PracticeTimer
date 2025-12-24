@@ -1,10 +1,25 @@
 ﻿<Properties StartupConfiguration="{E9C5C4EE-065F-466F-88DB-F89ACAD4A473}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="PacticeTimer/Program.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PacticeTimer/PacticeTimer.csproj">
     <Files>
-      <File FileName="PacticeTimer/Program.cs" Line="107" Column="82" />
-      <File FileName="PacticeTimer/PracticeSession.cs" />
-      <File FileName="PacticeTimer/Phase.cs" />
+      <File FileName="PacticeTimer/Program.cs" Line="30" Column="14" />
+      <File FileName="PacticeTimer/PracticeSession.cs" Line="40" Column="24" />
+      <File FileName="PacticeTimer/Phase.cs" Line="5" Column="2" />
+      <File FileName="PacticeTimer/Preset.cs" Line="6" Column="53" />
+      <File FileName="PacticeTimer/Presets/Warmup.json" Line="14" Column="27" />
+      <File FileName="PacticeTimer/PresetLoader.cs" Line="14" Column="23" />
+      <File FileName="PacticeTimer/PacticeTimer.csproj" Line="1" Column="1" />
     </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="PacticeTimer" expanded="True">
+            <Node name="PacticeTimer" expanded="True" selected="True">
+              <Node name="Presets" expanded="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.ItemProperties.PacticeTimer PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />

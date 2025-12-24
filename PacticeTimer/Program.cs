@@ -8,14 +8,37 @@ namespace PracticeTimer
     {
         static void Main(string[] args)
         {
-            var session = ReadPhasesFromConsole();
+            Console.Write("Load preset? (y/n): ");
+            var presetChoice = Console.ReadKey(true).KeyChar;
+
+
+            PracticeSession session;
+
+            if (presetChoice == 'y')
+            {
+                var presetPath = System.IO.Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Presets",
+                    "Warmup.json"
+                );
+
+                var preset = PresetLoader.Load(presetPath);
+
+                session = PracticeSession.FromPreset(preset);
+            }
+            else
+            {
+                session = ReadPhasesFromConsole();
+            }
 
             PrintPhases(session);
             Console.WriteLine($"\nTotal duration: {session.GetTotalDuration()}");
 
-
+            EditSession(session);
+            PrintPhases(session);
+            Console.WriteLine($"\nTotal duration: {session.GetTotalDuration()}");
             RunSession(session);
-
+           
         }
 
         static PracticeSession ReadPhasesFromConsole()
@@ -68,6 +91,132 @@ namespace PracticeTimer
             }
         }
 
+        static void EditSession(PracticeSession session)
+        {
+            while(true)
+            {
+                Console.Write("\nCommand (list/add/remove/edit/start/help): ");
+                string? input = Console.ReadLine();
+
+                if (input == null)
+                    continue;
+
+                input = input.Trim().ToLower();
+
+                if (input == "help")
+                {
+                    Console.WriteLine("Commands:");
+                    Console.WriteLine("  list            - show phases");
+                    Console.WriteLine("  add             - add a new phase");
+                    Console.WriteLine("  remove <number> - remove phase by number");
+                    Console.WriteLine("  edit <number>   - edit phase by number");
+                    Console.WriteLine("  start           - start the session");
+                    continue;
+                }
+
+
+                if (input == "list")
+                {
+                    PrintPhases(session);
+                }
+                else if (input == "add")
+                {
+                    Console.Write("Phase name: ");
+                    string? name = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        Console.WriteLine("Name cannot be empty.");
+                        continue;
+                    }
+
+                    int minutes;
+                    while (true)
+                    {
+                        Console.Write("Duration in minutes: ");
+                        string? durationInput = Console.ReadLine();
+
+                        if (int.TryParse(durationInput, out minutes) && minutes > 0)
+                            break;
+
+                        Console.WriteLine("Please enter a valid number greater than 0.");
+                    }
+
+                    session.AddPhase(new Phase { Name = name.Trim(), DurationMinutes = minutes });
+
+                    PrintPhases(session);
+                    Console.WriteLine($"\nTotal duration: {session.GetTotalDuration()}");
+                }
+
+                else if (input.StartsWith("remove "))
+                {
+                    var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                    if (parts.Length != 2 || !int.TryParse(parts[1], out int number))
+                    {
+                        Console.WriteLine("Usage: remove <number>");
+                        continue;
+                    }
+
+                    int index = number - 1;
+
+                    if (index < 0 || index >= session.Phases.Count)
+                    {
+                        Console.WriteLine("Invalid phase number.");
+                        continue;
+                    }
+
+                    session.RemovePhaseAt(index);
+
+                    PrintPhases(session);
+                    Console.WriteLine($"\nTotal duration: {session.GetTotalDuration()}");
+                }
+
+                else if (input.StartsWith("edit "))
+                {
+                    var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                    if (parts.Length != 2 || !int.TryParse(parts[1], out int number))
+                    {
+                        Console.WriteLine("Usage: edit <number>");
+                        continue;
+                    }
+
+                    int index = number - 1;
+
+                    if (index < 0 || index >= session.Phases.Count)
+                    {
+                        Console.WriteLine("Invalid phase number.");
+                        continue;
+                    }
+
+                    var phase = session.Phases[index];
+
+                    Console.Write($"New name (current: {phase.Name}): ");
+                    string? newName = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(newName))
+                        phase.Name = newName.Trim();
+
+                    Console.Write($"New duration in minutes (current: {phase.DurationMinutes}): ");
+                    string? durationInput = Console.ReadLine();
+                    if (int.TryParse(durationInput, out int newMinutes) && newMinutes > 0)
+                        phase.DurationMinutes = newMinutes;
+
+                    PrintPhases(session);
+                    Console.WriteLine($"\nTotal duration: {session.GetTotalDuration()}");
+                }
+
+
+                else if (input == "start") 
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Unknown command. Try 'list' or 'start'.");
+                }
+            }
+        }
+
         static void RunSession(PracticeSession session)
         {
             if (session.Phases.Count == 0)
@@ -97,7 +246,8 @@ namespace PracticeTimer
                 if(i < session.Phases.Count -1)
                 {
                     var next = session.Phases[i + 1];
-                    Console.WriteLine($"Next: {next.Name} {next.DurationMinutes}");
+                    Console.WriteLine($"Next: {next.Name} ({next.DurationMinutes} min)");
+
                 }
 
                 while (remainingSeconds > 0)

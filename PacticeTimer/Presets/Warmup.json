@@ -1,0 +1,17 @@
+﻿{
+  "name": "Warmup",
+  "phases": [
+    {
+      "name": "stretching",
+      "durationMinutes": 5
+    },
+    {
+      "name": "Spider Variations",
+      "durationMinutes": 3
+    },
+    {
+      "name": "Chromatic Displacement Picking",
+      "durationMinutes": 3
+    }
+  ]
+}
