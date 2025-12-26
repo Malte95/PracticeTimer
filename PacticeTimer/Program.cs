@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading;
+using PracticeTimer.Core;
+
 
 
 namespace PracticeTimer

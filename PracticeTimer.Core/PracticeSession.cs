@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+namespace PracticeTimer.Core
+{
 public class PracticeSession
 {
     private readonly List<Phase> _phases = new();
@@ -26,7 +28,7 @@ public class PracticeSession
     {
         int totalSeconds = 0;
 
-        foreach(var phase in _phases)
+        foreach (var phase in _phases)
         {
             totalSeconds += phase.DurationMinutes * 60;
         }
@@ -50,4 +52,5 @@ public class PracticeSession
 
         return session;
     }
+}
 }

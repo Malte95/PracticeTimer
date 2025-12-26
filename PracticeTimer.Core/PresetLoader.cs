@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using System.Text.Json;
+namespace PracticeTimer.Core
+{
 
 
 public static class PresetLoader
@@ -19,4 +21,6 @@ public static class PresetLoader
 
         return preset;
     }
+}
+
 }

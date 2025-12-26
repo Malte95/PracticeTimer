@@ -11,4 +11,9 @@
   </None>
 </ItemGroup>
 
+<ItemGroup>
+  <ProjectReference Include="..\PracticeTimer.Core\PracticeTimer.Core.csproj" />
+</ItemGroup>
+
+
 </Project>

@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "M8KsWTyqgXHskHvETsI+h3iUuygebG8YbbH+BoxV+TiVT2Yr/QeSphVY7drwLNDWgjL/bS48l7/Gi3kkRA9f/g==",
+  "dgSpecHash": "7TmYalm67gM=",
   "success": true,
   "projectFilePath": "/Users/maltescherenberg/C#_Tutorial/PacticeTimer/PacticeTimer/PacticeTimer.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/Users/maltescherenberg/.nuget/packages/microsoft.netcore.app.ref/5.0.0/microsoft.netcore.app.ref.5.0.0.nupkg.sha512",
+    "/Users/maltescherenberg/.nuget/packages/microsoft.aspnetcore.app.ref/5.0.0/microsoft.aspnetcore.app.ref.5.0.0.nupkg.sha512",
+    "/Users/maltescherenberg/.nuget/packages/microsoft.netcore.app.host.osx-x64/5.0.17/microsoft.netcore.app.host.osx-x64.5.0.17.nupkg.sha512"
+  ],
   "logs": []
 }
