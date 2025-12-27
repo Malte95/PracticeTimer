@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -28,4 +28,12 @@
   <ItemGroup>
     <ProjectReference Include="..\PracticeTimer.Core\PracticeTimer.Core.csproj" />
   </ItemGroup>
+
+<ItemGroup>
+  <None Include="..\Presets\**\*.json">
+    <Link>Presets\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
+
 </Project>
