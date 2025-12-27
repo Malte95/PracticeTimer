@@ -15,49 +15,79 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-<StackPanel Margin="20" Spacing="12"
+<StackPanel Margin="20"
+            Spacing="12"
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
 
-  <TextBlock FontSize="24" Text="PracticeTimer" HorizontalAlignment="Center"/>
+  <!-- App title -->
+  <TextBlock FontSize="24"
+             Text="PracticeTimer"
+             HorizontalAlignment="Center"/>
 
-  <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-    <Button Width="160"
+  <!-- Control buttons -->
+  <StackPanel Orientation="Horizontal"
+              Spacing="8"
+              HorizontalAlignment="Center">
+
+    <Button Width="140"
             Content="Load Warmup"
             Command="{Binding LoadPresetCommand}" />
-    <Button Width="160"
+
+    <Button Width="140"
             Content="Start Session"
             Command="{Binding StartSessionCommand}" />
-<Button Width="160"
-        Content="Next Phase"
-        Command="{Binding NextPhaseCommand}" />
 
+    <Button Width="140"
+            Content="Next Phase"
+            Command="{Binding NextPhaseCommand}" />
+
+    <Button Width="100"
+            Content="Stop"
+            Command="{Binding StopSessionCommand}" />
   </StackPanel>
 
-<TextBlock FontSize="18"
-           Text="{Binding CurrentPhaseName}"
-           HorizontalAlignment="Center"/>
+  <!-- Current phase name -->
+  <TextBlock FontSize="18"
+             Text="{Binding CurrentPhaseName}"
+             HorizontalAlignment="Center"/>
 
-<TextBlock Text="{Binding PhaseCounterText}"
-           HorizontalAlignment="Center"/>
+  <!-- Phase counter (e.g. Phase 1/4) -->
+  <TextBlock Text="{Binding PhaseCounterText}"
+             HorizontalAlignment="Center"/>
 
+  <!-- Remaining time (MM:SS) -->
+  <TextBlock FontSize="36"
+             Text="{Binding RemainingTimeText}"
+             HorizontalAlignment="Center"/>
 
-  <TextBlock Text="{Binding TotalDurationText}" HorizontalAlignment="Center"/>
+  <!-- Total session duration -->
+  <TextBlock Text="{Binding TotalDurationText}"
+             HorizontalAlignment="Center"/>
 
-  <ListBox ItemsSource="{Binding Phases}" Width="360" Height="220">
+  <!-- Phase list -->
+  <ListBox ItemsSource="{Binding Phases}"
+           Width="380"
+           Height="220">
+
     <ListBox.ItemTemplate>
       <DataTemplate>
         <StackPanel Orientation="Horizontal" Spacing="10">
-          <TextBlock Text="{Binding Name}" Width="220"/>
+          <TextBlock Text="{Binding Name}" Width="240"/>
           <TextBlock Text="{Binding DurationMinutes}"/>
           <TextBlock Text=" min"/>
         </StackPanel>
       </DataTemplate>
     </ListBox.ItemTemplate>
+
   </ListBox>
 
-  <TextBlock Text="{Binding StatusText}" HorizontalAlignment="Center"/>
+  <!-- Status text -->
+  <TextBlock Text="{Binding StatusText}"
+             HorizontalAlignment="Center"/>
+
 </StackPanel>
+
 
 
 

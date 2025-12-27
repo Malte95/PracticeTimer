@@ -24,6 +24,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string phaseCounterText = "Phase: —";
 
+    [ObservableProperty]
+    private string remainingTimeText = "00:00";
+
     public ObservableCollection<Phase> Phases { get; } = new();
 
     [RelayCommand]
@@ -48,6 +51,7 @@ public partial class MainWindowViewModel : ViewModelBase
         TotalDurationText = $"Total: {session.GetTotalDuration()}";
         CurrentPhaseName = "—";
         PhaseCounterText = $"Phase: 0/{session.Phases.Count}";
+        RemainingTimeText = "00:00";
         StatusText = "Preset loaded. Ready to start.";
     }
 
@@ -62,40 +66,59 @@ public partial class MainWindowViewModel : ViewModelBase
 
         currentIndex = 0;
         CurrentPhaseName = session.Phases[currentIndex].Name;
+
+        var minutes = session.Phases[currentIndex].DurationMinutes;
+        RemainingTimeText = $"{minutes:D2}:00";
+
         PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
         StatusText = "Running.";
     }
-    
+
     [RelayCommand]
-private void NextPhase()
-{
-    if (session == null || session.Phases.Count == 0)
+    private void NextPhase()
     {
-        StatusText = "Load a preset first.";
-        return;
+        if (session == null || session.Phases.Count == 0)
+        {
+            StatusText = "Load a preset first.";
+            return;
+        }
+
+        if (currentIndex < 0)
+        {
+            StatusText = "Press Start first.";
+            return;
+        }
+
+        currentIndex++;
+
+        if (currentIndex >= session.Phases.Count)
+        {
+            CurrentPhaseName = "Done!";
+            PhaseCounterText = $"Phase: {session.Phases.Count}/{session.Phases.Count}";
+            RemainingTimeText = "00:00";
+            StatusText = "Session finished.";
+            return;
+        }
+
+        CurrentPhaseName = session.Phases[currentIndex].Name;
+
+        var minutes = session.Phases[currentIndex].DurationMinutes;
+        RemainingTimeText = $"{minutes:D2}:00";
+
+        PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
+        StatusText = "Running.";
     }
 
-    if (currentIndex < 0)
+    [RelayCommand]
+    private void StopSession()
     {
-        StatusText = "Press Start first.";
-        return;
+        currentIndex = -1;
+        CurrentPhaseName = "—";
+        PhaseCounterText = "Phase: —";
+        RemainingTimeText = "00:00";
+        StatusText = "Ready.";
     }
-
-    currentIndex++;
-
-    if (currentIndex >= session.Phases.Count)
-    {
-        CurrentPhaseName = "Done!";
-        PhaseCounterText = $"Phase: {session.Phases.Count}/{session.Phases.Count}";
-        StatusText = "Session finished.";
-        return;
-    }
-
-    CurrentPhaseName = session.Phases[currentIndex].Name;
-    PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
-    StatusText = "Running.";
 }
 
-}
 
 
