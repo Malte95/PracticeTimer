@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using PracticeTimer.Core;
+using Avalonia.Threading;
 
 namespace PracticeTimer.Gui.ViewModels;
 
@@ -11,6 +12,29 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     private PracticeSession? session;
     private int currentIndex = -1;
+    
+    private TimeSpan remainingTime;
+    private DispatcherTimer? timer;
+    
+    private void Tick()
+{
+    if (currentIndex < 0 || session == null)
+        return;
+
+    remainingTime = remainingTime - TimeSpan.FromSeconds(1);
+
+    if (remainingTime <= TimeSpan.Zero)
+    {
+        remainingTime = TimeSpan.Zero;
+        RemainingTimeText = "00:00";
+        NextPhase(); // wechselt Phase und setzt remainingTime neu
+        return;
+    }
+
+    RemainingTimeText = remainingTime.ToString(@"mm\:ss");
+}
+
+
 
     [ObservableProperty]
     private string statusText = "Ready.";
@@ -67,11 +91,25 @@ public partial class MainWindowViewModel : ViewModelBase
         currentIndex = 0;
         CurrentPhaseName = session.Phases[currentIndex].Name;
 
-        var minutes = session.Phases[currentIndex].DurationMinutes;
-        RemainingTimeText = $"{minutes:D2}:00";
+       var minutes = session.Phases[currentIndex].DurationMinutes;
+remainingTime = TimeSpan.FromMinutes(minutes);
+RemainingTimeText = remainingTime.ToString(@"mm\:ss");
+
 
         PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
         StatusText = "Running.";
+        
+        timer?.Stop();
+
+timer = new DispatcherTimer
+{
+    Interval = TimeSpan.FromSeconds(1)
+};
+
+timer.Tick += (_, _) => Tick();
+
+timer.Start();
+
     }
 
     [RelayCommand]
@@ -97,13 +135,16 @@ public partial class MainWindowViewModel : ViewModelBase
             PhaseCounterText = $"Phase: {session.Phases.Count}/{session.Phases.Count}";
             RemainingTimeText = "00:00";
             StatusText = "Session finished.";
+            timer?.Stop();
             return;
         }
 
         CurrentPhaseName = session.Phases[currentIndex].Name;
 
         var minutes = session.Phases[currentIndex].DurationMinutes;
-        RemainingTimeText = $"{minutes:D2}:00";
+remainingTime = TimeSpan.FromMinutes(minutes);
+RemainingTimeText = remainingTime.ToString(@"mm\:ss");
+
 
         PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
         StatusText = "Running.";
@@ -112,6 +153,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void StopSession()
     {
+    timer?.Stop();
+
         currentIndex = -1;
         CurrentPhaseName = "—";
         PhaseCounterText = "Phase: —";
