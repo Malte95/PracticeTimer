@@ -42,6 +42,11 @@
             Content="Next Phase"
             Command="{Binding NextPhaseCommand}" />
 
+<Button Width="140"
+        Content="{Binding PauseResumeText}"
+        Command="{Binding TogglePauseCommand}" />
+
+
     <Button Width="100"
             Content="Stop"
             Command="{Binding StopSessionCommand}" />
