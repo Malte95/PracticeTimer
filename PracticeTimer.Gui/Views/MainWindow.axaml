@@ -42,6 +42,11 @@
             Content="Next Phase"
             Command="{Binding NextPhaseCommand}" />
 
+<Button Width="160"
+        Content="Restart Exercise"
+        Command="{Binding RestartExerciseCommand}" />
+
+
 <Button Width="140"
         Content="{Binding PauseResumeText}"
         Command="{Binding TogglePauseCommand}" />
