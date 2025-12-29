@@ -17,7 +17,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private TimeSpan remainingTime;
     private DispatcherTimer? timer;
+    [ObservableProperty]
     private bool isPaused;
+
 
 
     private void Tick()
@@ -31,7 +33,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         remainingTime = TimeSpan.Zero;
         RemainingTimeText = "00:00";
-        NextPhase(); // wechselt Phase und setzt remainingTime neu
+        NextPhase(); // advances to the next phase and resets remainingTime
         return;
     }
 
@@ -58,6 +60,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string pauseResumeText = "Pause";
+    
+    [ObservableProperty]
+    private bool isSessionRunning;
+    
+    public bool CanStartSession => !IsSessionRunning && Phases.Count > 0;
+
 
     public ObservableCollection<Phase> Phases { get; } = new();
 
@@ -65,8 +73,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private void LoadPreset()
     {
     timer?.Stop();
-    isPaused = false;
+    IsPaused = false;
     PauseResumeText = "Pause";
+    IsSessionRunning = false;
 
         var presetPath = Path.Combine(
             AppContext.BaseDirectory,
@@ -89,6 +98,7 @@ public partial class MainWindowViewModel : ViewModelBase
         PhaseCounterText = $"Phase: 0/{session.Phases.Count}";
         RemainingTimeText = "00:00";
         StatusText = "Preset loaded. Ready to start.";
+        OnPropertyChanged(nameof(CanStartSession));
     }
 
     [RelayCommand]
@@ -96,7 +106,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
     PlayPhaseSound();
 
-    isPaused = false;
+    IsPaused = false;
     PauseResumeText = "Pause";
 
 
@@ -107,6 +117,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         currentIndex = 0;
+        IsSessionRunning = true;
+        OnPropertyChanged(nameof(CanStartSession));
         CurrentPhaseName = session.Phases[currentIndex].Name;
 
        var minutes = session.Phases[currentIndex].DurationMinutes;
@@ -156,8 +168,8 @@ timer.Start();
             RemainingTimeText = "00:00";
             StatusText = "Session finished.";
             timer?.Stop();
-
-
+            IsSessionRunning = false;
+            OnPropertyChanged(nameof(CanStartSession));
             return;
         }
 
@@ -193,7 +205,7 @@ remainingTime = TimeSpan.FromMinutes(minutes);
 RemainingTimeText = remainingTime.ToString(@"mm\:ss");
 
 // Always continue running after restart
-isPaused = false;
+IsPaused = false;
 PauseResumeText = "Pause";
 timer?.Start();
 
@@ -206,7 +218,8 @@ PlayPhaseSound();
     private void StopSession()
     {
     timer?.Stop();
-    isPaused = false;
+    IsSessionRunning = false;
+    IsPaused = false;
      PauseResumeText = "Pause";
 
         currentIndex = -1;
@@ -214,6 +227,7 @@ PlayPhaseSound();
         PhaseCounterText = "Phase: —";
         RemainingTimeText = "00:00";
         StatusText = "Ready.";
+        OnPropertyChanged(nameof(CanStartSession));
     }
 
     [RelayCommand]
@@ -225,17 +239,17 @@ PlayPhaseSound();
         return;
     }
 
-   if (isPaused)
+   if (IsPaused)
 {
     timer?.Start();
-    isPaused = false;
+    IsPaused = false;
     PauseResumeText = "Pause";   // <- so
     StatusText = "Running.";
 }
 else
 {
     timer?.Stop();
-    isPaused = true;
+    IsPaused = true;
     PauseResumeText = "Resume";  // <- so
     StatusText = "Paused.";
 }
@@ -253,6 +267,8 @@ catch
     // optional: StatusText = "Sound playback failed.";
 }
 }
+
+
 
 
 }

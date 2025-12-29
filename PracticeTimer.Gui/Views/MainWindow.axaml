@@ -35,26 +35,36 @@
             Command="{Binding LoadPresetCommand}" />
 
     <Button Width="140"
-            Content="Start Session"
-            Command="{Binding StartSessionCommand}" />
+        Content="Start Session"
+        Command="{Binding StartSessionCommand}"
+        IsEnabled="{Binding CanStartSession}" />
+
 
     <Button Width="140"
-            Content="Next Phase"
-            Command="{Binding NextPhaseCommand}" />
+        Content="Next Phase"
+        Command="{Binding NextPhaseCommand}"
+        IsEnabled="{Binding IsSessionRunning}" />
 
-<Button Width="160"
+
+    <Button Width="160"
         Content="Restart Exercise"
-        Command="{Binding RestartExerciseCommand}" />
+        Command="{Binding RestartExerciseCommand}"
+        IsEnabled="{Binding IsSessionRunning}" />
 
 
-<Button Width="140"
+
+    <Button Width="140"
         Content="{Binding PauseResumeText}"
-        Command="{Binding TogglePauseCommand}" />
+        Command="{Binding TogglePauseCommand}"
+        IsEnabled="{Binding IsSessionRunning}" />
+
 
 
     <Button Width="100"
-            Content="Stop"
-            Command="{Binding StopSessionCommand}" />
+        Content="Stop"
+        Command="{Binding StopSessionCommand}"
+        IsEnabled="{Binding IsSessionRunning}" />
+
   </StackPanel>
 
   <!-- Current phase name -->
