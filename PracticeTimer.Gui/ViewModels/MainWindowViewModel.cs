@@ -7,7 +7,6 @@ using PracticeTimer.Core;
 using Avalonia.Threading;
 using NetCoreAudio;
 
-
 namespace PracticeTimer.Gui.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
@@ -17,31 +16,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private TimeSpan remainingTime;
     private DispatcherTimer? timer;
-    [ObservableProperty]
-    private bool isPaused;
-
-
-
-    private void Tick()
-{
-    if (currentIndex < 0 || session == null)
-        return;
-
-    remainingTime = remainingTime - TimeSpan.FromSeconds(1);
-
-    if (remainingTime <= TimeSpan.Zero)
-    {
-        remainingTime = TimeSpan.Zero;
-        RemainingTimeText = "00:00";
-        NextPhase(); // advances to the next phase and resets remainingTime
-        return;
-    }
-
-    RemainingTimeText = remainingTime.ToString(@"mm\:ss");
-}
 
     private readonly Player audioPlayer = new Player();
 
+    /* =========================
+       Observable State
+       ========================= */
+
+    [ObservableProperty]
+    private bool isPaused;
+
+    [ObservableProperty]
+    private bool isSessionRunning;
 
     [ObservableProperty]
     private string statusText = "Ready.";
@@ -60,22 +46,44 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string pauseResumeText = "Pause";
-    
-    [ObservableProperty]
-    private bool isSessionRunning;
-    
+
     public bool CanStartSession => !IsSessionRunning && Phases.Count > 0;
 
-
     public ObservableCollection<Phase> Phases { get; } = new();
+
+    /* =========================
+       Timer
+       ========================= */
+
+    private void Tick()
+    {
+        if (currentIndex < 0 || session == null)
+            return;
+
+        remainingTime -= TimeSpan.FromSeconds(1);
+
+        if (remainingTime <= TimeSpan.Zero)
+        {
+            remainingTime = TimeSpan.Zero;
+            RemainingTimeText = "00:00";
+            NextPhase();
+            return;
+        }
+
+        RemainingTimeText = remainingTime.ToString(@"mm\:ss");
+    }
+
+    /* =========================
+       Commands
+       ========================= */
 
     [RelayCommand]
     private void LoadPreset()
     {
-    timer?.Stop();
-    IsPaused = false;
-    PauseResumeText = "Pause";
-    IsSessionRunning = false;
+        timer?.Stop();
+        IsPaused = false;
+        IsSessionRunning = false;
+        PauseResumeText = "Pause";
 
         var presetPath = Path.Combine(
             AppContext.BaseDirectory,
@@ -98,179 +106,156 @@ public partial class MainWindowViewModel : ViewModelBase
         PhaseCounterText = $"Phase: 0/{session.Phases.Count}";
         RemainingTimeText = "00:00";
         StatusText = "Preset loaded. Ready to start.";
+
         OnPropertyChanged(nameof(CanStartSession));
     }
 
     [RelayCommand]
     private void StartSession()
     {
-    PlayPhaseSound();
-
-    IsPaused = false;
-    PauseResumeText = "Pause";
-
-
         if (session == null || session.Phases.Count == 0)
         {
             StatusText = "Load a preset first.";
             return;
         }
 
-        currentIndex = 0;
+        PlayPhaseSound();
+
+        IsPaused = false;
         IsSessionRunning = true;
+        PauseResumeText = "Pause";
         OnPropertyChanged(nameof(CanStartSession));
+
+        currentIndex = 0;
         CurrentPhaseName = session.Phases[currentIndex].Name;
 
-       var minutes = session.Phases[currentIndex].DurationMinutes;
-       remainingTime = TimeSpan.FromMinutes(minutes);
-       RemainingTimeText = remainingTime.ToString(@"mm\:ss");
-
+        remainingTime = TimeSpan.FromMinutes(session.Phases[currentIndex].DurationMinutes);
+        RemainingTimeText = remainingTime.ToString(@"mm\:ss");
 
         PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
         StatusText = "Running.";
 
         timer?.Stop();
-
-timer = new DispatcherTimer
-{
-    Interval = TimeSpan.FromSeconds(1)
-};
-
-timer.Tick += (_, _) => Tick();
-
-timer.Start();
-
+        timer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(1)
+        };
+        timer.Tick += (_, _) => Tick();
+        timer.Start();
     }
 
     [RelayCommand]
     private void NextPhase()
     {
-        if (session == null || session.Phases.Count == 0)
-        {
-            StatusText = "Load a preset first.";
+        if (session == null || currentIndex < 0)
             return;
-        }
-
-        if (currentIndex < 0)
-        {
-            StatusText = "Press Start first.";
-            return;
-        }
 
         currentIndex++;
         PlayPhaseSound();
 
-
         if (currentIndex >= session.Phases.Count)
         {
+            timer?.Stop();
+            IsSessionRunning = false;
+
             CurrentPhaseName = "Done!";
             PhaseCounterText = $"Phase: {session.Phases.Count}/{session.Phases.Count}";
             RemainingTimeText = "00:00";
             StatusText = "Session finished.";
-            timer?.Stop();
-            IsSessionRunning = false;
+
             OnPropertyChanged(nameof(CanStartSession));
             return;
         }
 
         CurrentPhaseName = session.Phases[currentIndex].Name;
-
-        var minutes = session.Phases[currentIndex].DurationMinutes;
-        remainingTime = TimeSpan.FromMinutes(minutes);
+        remainingTime = TimeSpan.FromMinutes(session.Phases[currentIndex].DurationMinutes);
         RemainingTimeText = remainingTime.ToString(@"mm\:ss");
-
 
         PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
         StatusText = "Running.";
     }
 
     [RelayCommand]
-private void RestartExercise()
-{
-if (session == null || session.Phases.Count == 0)
-{
-StatusText = "Load a preset first.";
-return;
-}
+    private void RestartExercise()
+    {
+        if (session == null || currentIndex < 0 || currentIndex >= session.Phases.Count)
+            return;
 
-if (currentIndex < 0 || currentIndex >= session.Phases.Count)
-{
-StatusText = "Press Start first.";
-return;
-}
+        remainingTime = TimeSpan.FromMinutes(session.Phases[currentIndex].DurationMinutes);
+        RemainingTimeText = remainingTime.ToString(@"mm\:ss");
 
-// Reset remaining time for the current phase
-var minutes = session.Phases[currentIndex].DurationMinutes;
-remainingTime = TimeSpan.FromMinutes(minutes);
-RemainingTimeText = remainingTime.ToString(@"mm\:ss");
+        IsPaused = false;
+        PauseResumeText = "Pause";
 
-// Always continue running after restart
-IsPaused = false;
-PauseResumeText = "Pause";
-timer?.Start();
+        timer?.Stop();
+        timer?.Start();
 
-StatusText = "Exercise restarted.";
-PlayPhaseSound(); 
-}
-
+        StatusText = "Running.";
+        PlayPhaseSound();
+    }
 
     [RelayCommand]
     private void StopSession()
     {
-    timer?.Stop();
-    IsSessionRunning = false;
-    IsPaused = false;
-     PauseResumeText = "Pause";
+        timer?.Stop();
+
+        IsSessionRunning = false;
+        IsPaused = false;
+        PauseResumeText = "Pause";
 
         currentIndex = -1;
         CurrentPhaseName = "—";
         PhaseCounterText = "Phase: —";
         RemainingTimeText = "00:00";
         StatusText = "Ready.";
+
         OnPropertyChanged(nameof(CanStartSession));
     }
 
     [RelayCommand]
     private void TogglePause()
-{
-    if (session == null || currentIndex < 0)
     {
-        StatusText = "Press Start first.";
-        return;
+        if (!IsSessionRunning)
+            return;
+
+        if (IsPaused)
+        {
+            timer?.Start();
+            IsPaused = false;
+            PauseResumeText = "Pause";
+            StatusText = "Running.";
+        }
+        else
+        {
+            timer?.Stop();
+            IsPaused = true;
+            PauseResumeText = "Resume";
+            StatusText = "Paused.";
+        }
     }
 
-   if (IsPaused)
-{
-    timer?.Start();
-    IsPaused = false;
-    PauseResumeText = "Pause";   // <- so
-    StatusText = "Running.";
-}
-else
-{
-    timer?.Stop();
-    IsPaused = true;
-    PauseResumeText = "Resume";  // <- so
-    StatusText = "Paused.";
-}
-}
+    /* =========================
+       Sound
+       ========================= */
 
-private async void PlayPhaseSound()
-{
-try
-{
-    var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Sounds", "phase.wav");
-    await audioPlayer.Play(path);
-}
-catch
-{
-    // optional: StatusText = "Sound playback failed.";
-}
-}
+    private async void PlayPhaseSound()
+    {
+        try
+        {
+            var path = Path.Combine(
+                AppContext.BaseDirectory,
+                "Assets",
+                "Sounds",
+                "phase.wav"
+            );
 
-
-
-
+            await audioPlayer.Play(path);
+        }
+        catch
+        {
+            // Sound playback failure is non-critical
+        }
+    }
 }
 
 
