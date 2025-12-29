@@ -1,208 +1,231 @@
-﻿    using CommunityToolkit.Mvvm.ComponentModel;
-    using CommunityToolkit.Mvvm.Input;
-    using System;
-    using System.Collections.ObjectModel;
-    using System.IO;
-    using PracticeTimer.Core;
-    using Avalonia.Threading;
-
-    namespace PracticeTimer.Gui.ViewModels;
-
-    public partial class MainWindowViewModel : ViewModelBase
-    {
-        private PracticeSession? session;
-        private int currentIndex = -1;
-
-        private TimeSpan remainingTime;
-        private DispatcherTimer? timer;
-        private bool isPaused;
+﻿        using CommunityToolkit.Mvvm.ComponentModel;
+        using CommunityToolkit.Mvvm.Input;
+        using System;
+        using System.Collections.ObjectModel;
+        using System.IO;
+        using PracticeTimer.Core;
+        using Avalonia.Threading;
+    using NetCoreAudio;
 
 
-        private void Tick()
-    {
-        if (currentIndex < 0 || session == null)
-            return;
+        namespace PracticeTimer.Gui.ViewModels;
 
-        remainingTime = remainingTime - TimeSpan.FromSeconds(1);
-
-        if (remainingTime <= TimeSpan.Zero)
+        public partial class MainWindowViewModel : ViewModelBase
         {
-            remainingTime = TimeSpan.Zero;
-            RemainingTimeText = "00:00";
-            NextPhase(); // wechselt Phase und setzt remainingTime neu
-            return;
+            private PracticeSession? session;
+            private int currentIndex = -1;
+
+            private TimeSpan remainingTime;
+            private DispatcherTimer? timer;
+            private bool isPaused;
+
+
+            private void Tick()
+        {
+            if (currentIndex < 0 || session == null)
+                return;
+
+            remainingTime = remainingTime - TimeSpan.FromSeconds(1);
+
+            if (remainingTime <= TimeSpan.Zero)
+            {
+                remainingTime = TimeSpan.Zero;
+                RemainingTimeText = "00:00";
+                NextPhase(); // wechselt Phase und setzt remainingTime neu
+                return;
+            }
+
+            RemainingTimeText = remainingTime.ToString(@"mm\:ss");
         }
 
-        RemainingTimeText = remainingTime.ToString(@"mm\:ss");
-    }
+     private readonly Player audioPlayer = new Player();
 
 
+            [ObservableProperty]
+            private string statusText = "Ready.";
 
-        [ObservableProperty]
-        private string statusText = "Ready.";
+            [ObservableProperty]
+            private string totalDurationText = "Total: 00:00:00";
 
-        [ObservableProperty]
-        private string totalDurationText = "Total: 00:00:00";
+            [ObservableProperty]
+            private string currentPhaseName = "—";
 
-        [ObservableProperty]
-        private string currentPhaseName = "—";
+            [ObservableProperty]
+            private string phaseCounterText = "Phase: —";
 
-        [ObservableProperty]
-        private string phaseCounterText = "Phase: —";
+            [ObservableProperty]
+            private string remainingTimeText = "00:00";
 
-        [ObservableProperty]
-        private string remainingTimeText = "00:00";
+            [ObservableProperty]
+        private string pauseResumeText = "Pause";
 
-        [ObservableProperty]
-    private string pauseResumeText = "Pause";
+            public ObservableCollection<Phase> Phases { get; } = new();
 
-        public ObservableCollection<Phase> Phases { get; } = new();
-
-        [RelayCommand]
-        private void LoadPreset()
-        {
-        timer?.Stop();
-    isPaused = false;
-    PauseResumeText = "Pause";
-
-            var presetPath = Path.Combine(
-                AppContext.BaseDirectory,
-                "Presets",
-                "Warmup.json"
-            );
-
-            var preset = PresetLoader.Load(presetPath);
-            var loadedSession = PracticeSession.FromPreset(preset);
-
-            Phases.Clear();
-            foreach (var p in loadedSession.Phases)
-                Phases.Add(p);
-
-            session = loadedSession;
-            currentIndex = -1;
-
-            TotalDurationText = $"Total: {session.GetTotalDuration()}";
-            CurrentPhaseName = "—";
-            PhaseCounterText = $"Phase: 0/{session.Phases.Count}";
-            RemainingTimeText = "00:00";
-            StatusText = "Preset loaded. Ready to start.";
-        }
-
-        [RelayCommand]
-        private void StartSession()
-        {
+            [RelayCommand]
+            private void LoadPreset()
+            {
+            timer?.Stop();
         isPaused = false;
         PauseResumeText = "Pause";
 
+                var presetPath = Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Presets",
+                    "Warmup.json"
+                );
 
-            if (session == null || session.Phases.Count == 0)
-            {
-                StatusText = "Load a preset first.";
-                return;
+                var preset = PresetLoader.Load(presetPath);
+                var loadedSession = PracticeSession.FromPreset(preset);
+
+                Phases.Clear();
+                foreach (var p in loadedSession.Phases)
+                    Phases.Add(p);
+
+                session = loadedSession;
+                currentIndex = -1;
+
+                TotalDurationText = $"Total: {session.GetTotalDuration()}";
+                CurrentPhaseName = "—";
+                PhaseCounterText = $"Phase: 0/{session.Phases.Count}";
+                RemainingTimeText = "00:00";
+                StatusText = "Preset loaded. Ready to start.";
             }
 
-            currentIndex = 0;
-            CurrentPhaseName = session.Phases[currentIndex].Name;
+            [RelayCommand]
+            private void StartSession()
+            {
+            PlayPhaseSound();
 
-           var minutes = session.Phases[currentIndex].DurationMinutes;
-    remainingTime = TimeSpan.FromMinutes(minutes);
-    RemainingTimeText = remainingTime.ToString(@"mm\:ss");
+            isPaused = false;
+            PauseResumeText = "Pause";
 
 
-            PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
-            StatusText = "Running.";
+                if (session == null || session.Phases.Count == 0)
+                {
+                    StatusText = "Load a preset first.";
+                    return;
+                }
 
-            timer?.Stop();
+                currentIndex = 0;
+                CurrentPhaseName = session.Phases[currentIndex].Name;
 
-    timer = new DispatcherTimer
-    {
-        Interval = TimeSpan.FromSeconds(1)
-    };
+               var minutes = session.Phases[currentIndex].DurationMinutes;
+        remainingTime = TimeSpan.FromMinutes(minutes);
+        RemainingTimeText = remainingTime.ToString(@"mm\:ss");
 
-    timer.Tick += (_, _) => Tick();
 
-    timer.Start();
+                PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
+                StatusText = "Running.";
 
-        }
+                timer?.Stop();
 
-        [RelayCommand]
-        private void NextPhase()
+        timer = new DispatcherTimer
         {
-            if (session == null || session.Phases.Count == 0)
-            {
-                StatusText = "Load a preset first.";
-                return;
+            Interval = TimeSpan.FromSeconds(1)
+        };
+
+        timer.Tick += (_, _) => Tick();
+
+        timer.Start();
+
             }
 
-            if (currentIndex < 0)
+            [RelayCommand]
+            private void NextPhase()
+            {
+                if (session == null || session.Phases.Count == 0)
+                {
+                    StatusText = "Load a preset first.";
+                    return;
+                }
+
+                if (currentIndex < 0)
+                {
+                    StatusText = "Press Start first.";
+                    return;
+                }
+
+                currentIndex++;
+                PlayPhaseSound();
+
+
+                if (currentIndex >= session.Phases.Count)
+                {
+                    CurrentPhaseName = "Done!";
+                    PhaseCounterText = $"Phase: {session.Phases.Count}/{session.Phases.Count}";
+                    RemainingTimeText = "00:00";
+                    StatusText = "Session finished.";
+                    timer?.Stop();
+
+
+                    return;
+                }
+
+                CurrentPhaseName = session.Phases[currentIndex].Name;
+
+                var minutes = session.Phases[currentIndex].DurationMinutes;
+        remainingTime = TimeSpan.FromMinutes(minutes);
+        RemainingTimeText = remainingTime.ToString(@"mm\:ss");
+
+
+                PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
+                StatusText = "Running.";
+            }
+
+            [RelayCommand]
+            private void StopSession()
+            {
+            timer?.Stop();
+            isPaused = false;
+             PauseResumeText = "Pause";
+
+                currentIndex = -1;
+                CurrentPhaseName = "—";
+                PhaseCounterText = "Phase: —";
+                RemainingTimeText = "00:00";
+                StatusText = "Ready.";
+            }
+
+            [RelayCommand]
+        private void TogglePause()
+        {
+            if (session == null || currentIndex < 0)
             {
                 StatusText = "Press Start first.";
                 return;
             }
 
-            currentIndex++;
-
-            if (currentIndex >= session.Phases.Count)
-            {
-                CurrentPhaseName = "Done!";
-                PhaseCounterText = $"Phase: {session.Phases.Count}/{session.Phases.Count}";
-                RemainingTimeText = "00:00";
-                StatusText = "Session finished.";
-                timer?.Stop();
-                return;
-            }
-
-            CurrentPhaseName = session.Phases[currentIndex].Name;
-
-            var minutes = session.Phases[currentIndex].DurationMinutes;
-    remainingTime = TimeSpan.FromMinutes(minutes);
-    RemainingTimeText = remainingTime.ToString(@"mm\:ss");
-
-
-            PhaseCounterText = $"Phase: {currentIndex + 1}/{session.Phases.Count}";
+           if (isPaused)
+        {
+            timer?.Start();
+            isPaused = false;
+            PauseResumeText = "Pause";   // <- so
             StatusText = "Running.";
         }
-
-        [RelayCommand]
-        private void StopSession()
+        else
         {
-        timer?.Stop();
-        isPaused = false;
-         PauseResumeText = "Pause";
-
-            currentIndex = -1;
-            CurrentPhaseName = "—";
-            PhaseCounterText = "Phase: —";
-            RemainingTimeText = "00:00";
-            StatusText = "Ready.";
+            timer?.Stop();
+            isPaused = true;
+            PauseResumeText = "Resume";  // <- so
+            StatusText = "Paused.";
+        }
         }
 
-        [RelayCommand]
-    private void TogglePause()
+        private async void PlayPhaseSound()
     {
-        if (session == null || currentIndex < 0)
+        try
         {
-            StatusText = "Press Start first.";
-            return;
+            var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Sounds", "phase.wav");
+            await audioPlayer.Play(path);
         }
-
-       if (isPaused)
-    {
-        timer?.Start();
-        isPaused = false;
-        PauseResumeText = "Pause";   // <- so
-        StatusText = "Running.";
-    }
-    else
-    {
-        timer?.Stop();
-        isPaused = true;
-        PauseResumeText = "Resume";  // <- so
-        StatusText = "Paused.";
-    }
+        catch
+        {
+            // optional: StatusText = "Sound playback failed.";
+        }
     }
 
-    }
+
+        }
 
 
 

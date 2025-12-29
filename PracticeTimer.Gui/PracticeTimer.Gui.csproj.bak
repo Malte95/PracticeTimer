@@ -37,8 +37,4 @@
   </None>
 </ItemGroup>
 
-  <ItemGroup>
-    <None Include="Assets/Sounds/phase.wav" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
 </Project>
