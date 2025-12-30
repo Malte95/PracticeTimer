@@ -30,9 +30,15 @@
               Spacing="8"
               HorizontalAlignment="Center">
 
-    <Button Width="140"
-            Content="Load Warmup"
-            Command="{Binding LoadPresetCommand}" />
+<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+  <TextBlock Text="Preset:" VerticalAlignment="Center"/>
+  <ComboBox Width="200"
+            ItemsSource="{Binding PresetNames}"
+            SelectedItem="{Binding SelectedPresetName}" />
+</StackPanel>
+
+
+
 
     <Button Width="140"
         Content="Start Session"

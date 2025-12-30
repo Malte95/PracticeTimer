@@ -11,6 +11,15 @@ namespace PracticeTimer.Gui.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    public MainWindowViewModel()
+    {
+        isInitializing = true;
+        RefreshPresetList();
+        isInitializing = false;
+    }
+
+    private bool isInitializing;
+
     private PracticeSession? session;
     private int currentIndex = -1;
 
@@ -46,6 +55,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string pauseResumeText = "Pause";
+
+    public ObservableCollection<string> PresetNames { get; } = new();
+
+    [ObservableProperty]
+    private string? selectedPresetName;
 
     public bool CanStartSession => !IsSessionRunning && Phases.Count > 0;
 
@@ -85,11 +99,23 @@ public partial class MainWindowViewModel : ViewModelBase
         IsSessionRunning = false;
         PauseResumeText = "Pause";
 
+        if (string.IsNullOrWhiteSpace(SelectedPresetName))
+        {
+            StatusText = "Select a preset first.";
+            return;
+        }
+
         var presetPath = Path.Combine(
             AppContext.BaseDirectory,
             "Presets",
-            "Warmup.json"
+            SelectedPresetName
         );
+
+        if (!File.Exists(presetPath))
+        {
+            StatusText = $"Preset not found: {SelectedPresetName}";
+            return;
+        }
 
         var preset = PresetLoader.Load(presetPath);
         var loadedSession = PracticeSession.FromPreset(preset);
@@ -256,7 +282,38 @@ public partial class MainWindowViewModel : ViewModelBase
             // Sound playback failure is non-critical
         }
     }
+
+    /* =========================
+       Presets
+       ========================= */
+
+    private void RefreshPresetList()
+    {
+        PresetNames.Clear();
+
+        var presetsDir = Path.Combine(AppContext.BaseDirectory, "Presets");
+        if (!Directory.Exists(presetsDir))
+            return;
+
+        foreach (var file in Directory.GetFiles(presetsDir, "*.json"))
+            PresetNames.Add(Path.GetFileName(file));
+
+        // Start with no selection (user must pick)
+        SelectedPresetName = null;
+    }
+
+    partial void OnSelectedPresetNameChanged(string? value)
+    {
+        if (isInitializing)
+            return;
+
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        LoadPreset();
+    }
 }
+
 
 
 
