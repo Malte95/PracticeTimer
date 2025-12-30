@@ -7,7 +7,8 @@
         x:Class="PracticeTimer.Gui.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="PracticeTimer.Gui">
+        Title="PracticeTimer.Gui"
+        xmlns:core="using:PracticeTimer.Core">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -122,21 +123,28 @@
              HorizontalAlignment="Center"/>
 
   <!-- Phase list -->
-  <ListBox ItemsSource="{Binding Phases}"
-           Width="380"
-           Height="220">
+<ListBox ItemsSource="{Binding Phases}"
+         SelectedItem="{Binding SelectedExercise}"
+         Width="380"
+         Height="220">
 
-    <ListBox.ItemTemplate>
-      <DataTemplate>
-        <StackPanel Orientation="Horizontal" Spacing="10">
-          <TextBlock Text="{Binding Name}" Width="240"/>
-          <TextBlock Text="{Binding DurationMinutes}"/>
-          <TextBlock Text=" min"/>
-        </StackPanel>
-      </DataTemplate>
-    </ListBox.ItemTemplate>
+  <ListBox.ItemTemplate>
+    <DataTemplate>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="{Binding Name}" Width="240"/>
+        <TextBlock Text="{Binding DurationMinutes}"/>
+        <TextBlock Text=" min"/>
+      </StackPanel>
+    </DataTemplate>
+  </ListBox.ItemTemplate>
 
-  </ListBox>
+</ListBox>
+
+<Button Width="140"
+        Content="Remove Exercise"
+        Command="{Binding RemoveExerciseCommand}" />
+
+
 
   <!-- Status text -->
   <TextBlock Text="{Binding StatusText}"

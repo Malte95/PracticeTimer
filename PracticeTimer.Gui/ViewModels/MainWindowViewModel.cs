@@ -57,6 +57,11 @@ public partial class MainWindowViewModel : ViewModelBase
     // [ObservableProperty]
     // private string? selectedPresetName;
     
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RemoveExerciseCommand))]
+    private Phase? selectedExercise;
+
+    
     /* =========================
        Add Exercise (Input State)
        ========================= */
@@ -181,6 +186,7 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = "Running.";
 
         timer?.Stop();
+        
         timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1)
@@ -243,7 +249,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void StopSession()
     {
         timer?.Stop();
-
+        session = null;
         IsSessionRunning = false;
         //IsPaused = false;
         //PauseResumeText = "Pause";
@@ -387,6 +393,36 @@ public partial class MainWindowViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(CanStartSession));
     }
+    
+    private bool CanRemoveExercise()
+    {
+        return !IsSessionRunning && SelectedExercise != null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRemoveExercise))]
+    private void RemoveExercise()
+    {
+        if (SelectedExercise == null)
+            return;
+
+        var removedName = SelectedExercise.Name;
+
+        Phases.Remove(SelectedExercise);
+        SelectedExercise = null;
+
+        // Editing invalidates the running session
+        session = null;
+        currentIndex = -1;
+
+        CurrentPhaseName = "—";
+        RemainingTimeText = "00:00";
+
+        UpdateTotals();
+        OnPropertyChanged(nameof(CanStartSession));
+
+        StatusText = $"Removed: {removedName}";
+    }
+
     
     private void UpdateTotals()
     {
