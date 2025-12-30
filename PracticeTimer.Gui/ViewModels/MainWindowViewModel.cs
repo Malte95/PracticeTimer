@@ -11,14 +11,10 @@ namespace PracticeTimer.Gui.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    public MainWindowViewModel()
+   public MainWindowViewModel()
     {
-        isInitializing = true;
-        RefreshPresetList();
-        isInitializing = false;
+        // MVP: nothing to initialize yet
     }
-
-    private bool isInitializing;
 
     private PracticeSession? session;
     private int currentIndex = -1;
@@ -32,8 +28,8 @@ public partial class MainWindowViewModel : ViewModelBase
        Observable State
        ========================= */
 
-    [ObservableProperty]
-    private bool isPaused;
+   /* [ObservableProperty]
+    private bool isPaused; */
 
     [ObservableProperty]
     private bool isSessionRunning;
@@ -53,13 +49,27 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string remainingTimeText = "00:00";
 
-    [ObservableProperty]
-    private string pauseResumeText = "Pause";
+    /* [ObservableProperty]
+    private string pauseResumeText = "Pause"; */
 
-    public ObservableCollection<string> PresetNames { get; } = new();
+    // public ObservableCollection<string> PresetNames { get; } = new();
+
+    // [ObservableProperty]
+    // private string? selectedPresetName;
+    
+    /* =========================
+       Add Exercise (Input State)
+       ========================= */
 
     [ObservableProperty]
-    private string? selectedPresetName;
+    [NotifyCanExecuteChangedFor(nameof(AddExerciseCommand))]
+    private string newExerciseName = string.Empty;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddExerciseCommand))]
+    private string newExerciseMinutesText = string.Empty;
+
+
 
     public bool CanStartSession => !IsSessionRunning && Phases.Count > 0;
 
@@ -91,7 +101,7 @@ public partial class MainWindowViewModel : ViewModelBase
        Commands
        ========================= */
 
-    [RelayCommand]
+    /*[RelayCommand]
     private void LoadPreset()
     {
         timer?.Stop();
@@ -134,22 +144,31 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = "Preset loaded. Ready to start.";
 
         OnPropertyChanged(nameof(CanStartSession));
-    }
+    } */
 
     [RelayCommand]
     private void StartSession()
     {
-        if (session == null || session.Phases.Count == 0)
+        if (Phases.Count == 0)
         {
-            StatusText = "Load a preset first.";
+            StatusText = "Add at least one exercise first.";
             return;
         }
 
+        // Build a fresh session from the current UI list
+        var newSession = new PracticeSession();
+        foreach (var p in Phases)
+            newSession.AddPhase(new Phase { Name = p.Name, DurationMinutes = p.DurationMinutes });
+
+        session = newSession;
+        currentIndex = -1;
+
+
         PlayPhaseSound();
 
-        IsPaused = false;
+        //IsPaused = false;
         IsSessionRunning = true;
-        PauseResumeText = "Pause";
+        //PauseResumeText = "Pause";
         OnPropertyChanged(nameof(CanStartSession));
 
         currentIndex = 0;
@@ -201,7 +220,7 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = "Running.";
     }
 
-    [RelayCommand]
+   /* [RelayCommand]
     private void RestartExercise()
     {
         if (session == null || currentIndex < 0 || currentIndex >= session.Phases.Count)
@@ -218,7 +237,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         StatusText = "Running.";
         PlayPhaseSound();
-    }
+    } */
 
     [RelayCommand]
     private void StopSession()
@@ -226,8 +245,8 @@ public partial class MainWindowViewModel : ViewModelBase
         timer?.Stop();
 
         IsSessionRunning = false;
-        IsPaused = false;
-        PauseResumeText = "Pause";
+        //IsPaused = false;
+        //PauseResumeText = "Pause";
 
         currentIndex = -1;
         CurrentPhaseName = "—";
@@ -236,9 +255,10 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = "Ready.";
 
         OnPropertyChanged(nameof(CanStartSession));
+        UpdateTotals();
     }
 
-    [RelayCommand]
+    /*[RelayCommand]
     private void TogglePause()
     {
         if (!IsSessionRunning)
@@ -258,7 +278,7 @@ public partial class MainWindowViewModel : ViewModelBase
             PauseResumeText = "Resume";
             StatusText = "Paused.";
         }
-    }
+    } */
 
     /* =========================
        Sound
@@ -287,7 +307,7 @@ public partial class MainWindowViewModel : ViewModelBase
        Presets
        ========================= */
 
-    private void RefreshPresetList()
+   /* private void RefreshPresetList()
     {
         PresetNames.Clear();
 
@@ -300,9 +320,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Start with no selection (user must pick)
         SelectedPresetName = null;
-    }
+    } */
 
-    partial void OnSelectedPresetNameChanged(string? value)
+    /* partial void OnSelectedPresetNameChanged(string? value)
     {
         if (isInitializing)
             return;
@@ -311,7 +331,76 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
 
         LoadPreset();
+    } */
+    
+    private bool CanAddExercise()
+    {
+        if (IsSessionRunning)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(NewExerciseName))
+            return false;
+
+        return int.TryParse(NewExerciseMinutesText, out var minutes) && minutes > 0;
     }
+
+    [RelayCommand(CanExecute = nameof(CanAddExercise))]
+    private void AddExercise()
+    {
+        var name = NewExerciseName.Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            StatusText = "Exercise name must not be empty.";
+            return;
+        }
+
+        if (!int.TryParse(NewExerciseMinutesText, out var minutes) || minutes <= 0)
+        {
+            StatusText = "Minutes must be a number greater than 0.";
+            return;
+        }
+
+        var phase = new Phase
+        {
+            Name = name,
+            DurationMinutes = minutes
+        };
+
+        // Update UI list (ListBox)
+        Phases.Add(phase);
+
+        // Invalidate current session so it gets rebuilt from the UI list on Start
+        session = null;
+        currentIndex = -1;
+
+        // Clear inputs
+        NewExerciseName = string.Empty;
+        NewExerciseMinutesText = string.Empty;
+
+        UpdateTotals();
+        RemainingTimeText = "00:00";
+        CurrentPhaseName = "—";
+
+
+        StatusText = $"Exercise added: {phase.Name} ({phase.DurationMinutes} min)";
+
+        OnPropertyChanged(nameof(CanStartSession));
+    }
+    
+    private void UpdateTotals()
+    {
+        var totalMinutes = 0;
+        foreach (var p in Phases)
+            totalMinutes += p.DurationMinutes;
+
+        TotalDurationText = $"Total: {TimeSpan.FromMinutes(totalMinutes):hh\\:mm\\:ss}";
+        PhaseCounterText = $"Phase: 0/{Phases.Count}";
+    }
+
+
+
+
 }
 
 

@@ -30,14 +30,42 @@
               Spacing="8"
               HorizontalAlignment="Center">
 
+<!--
 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
   <TextBlock Text="Preset:" VerticalAlignment="Center"/>
   <ComboBox Width="200"
             ItemsSource="{Binding PresetNames}"
             SelectedItem="{Binding SelectedPresetName}" />
 </StackPanel>
+-->
 
 
+<!-- Add Exercise -->
+<Border Margin="0,0,0,12"
+        Padding="12"
+        CornerRadius="8"
+        BorderThickness="1">
+
+  <StackPanel Spacing="8">
+
+    <StackPanel Orientation="Horizontal"
+                Spacing="8">
+
+      <TextBox Width="220"
+               Watermark="Exercise name (e.g. Chords)"
+               Text="{Binding NewExerciseName, UpdateSourceTrigger=PropertyChanged}" />
+
+      <TextBox Width="120"
+               Watermark="Minutes"
+               Text="{Binding NewExerciseMinutesText, UpdateSourceTrigger=PropertyChanged}" />
+
+      <Button Content="Add Exercise"
+              Command="{Binding AddExerciseCommand}" />
+
+    </StackPanel>
+
+  </StackPanel>
+</Border>
 
 
     <Button Width="140"
@@ -51,18 +79,20 @@
         Command="{Binding NextPhaseCommand}"
         IsEnabled="{Binding IsSessionRunning}" />
 
-
+<!--
     <Button Width="160"
         Content="Restart Exercise"
         Command="{Binding RestartExerciseCommand}"
         IsEnabled="{Binding IsSessionRunning}" />
+-->
 
 
-
+<!--
     <Button Width="140"
         Content="{Binding PauseResumeText}"
         Command="{Binding TogglePauseCommand}"
         IsEnabled="{Binding IsSessionRunning}" />
+-->
 
 
 
