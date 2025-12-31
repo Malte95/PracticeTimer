@@ -1,7 +1,7 @@
-<video src="assets/practice-timer-demo.mov"
-       controls
-       width="800">
-</video>
+[![Practice Timer Demo](PracticeTimer.Gui/Assets/practice-timer-demo.png)](PracticeTimer.Gui/Assets/practice-timer-demo.mov)
+
+🎥 Demo video: [practice-timer-demo.mov](PracticeTimer.Gui/Assets/practice-timer-demo.mov)
+
 
 # Practice Timer (MVP)
 
