@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
 using PracticeTimer.Core;
 using Avalonia.Threading;
 using NetCoreAudio;
@@ -11,9 +10,9 @@ namespace PracticeTimer.Gui.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-   public MainWindowViewModel()
+    public MainWindowViewModel()
     {
-        // MVP: nothing to initialize yet
+        UpdateTotals();
     }
 
     private PracticeSession? session;
@@ -27,9 +26,6 @@ public partial class MainWindowViewModel : ViewModelBase
     /* =========================
        Observable State
        ========================= */
-
-   /* [ObservableProperty]
-    private bool isPaused; */
 
     [ObservableProperty]
     private bool isSessionRunning;
@@ -49,19 +45,10 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string remainingTimeText = "00:00";
 
-    /* [ObservableProperty]
-    private string pauseResumeText = "Pause"; */
-
-    // public ObservableCollection<string> PresetNames { get; } = new();
-
-    // [ObservableProperty]
-    // private string? selectedPresetName;
-    
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RemoveExerciseCommand))]
     private Phase? selectedExercise;
 
-    
     /* =========================
        Add Exercise (Input State)
        ========================= */
@@ -74,11 +61,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(AddExerciseCommand))]
     private string newExerciseMinutesText = string.Empty;
 
-
+    public ObservableCollection<Phase> Phases { get; } = new();
 
     public bool CanStartSession => !IsSessionRunning && Phases.Count > 0;
-
-    public ObservableCollection<Phase> Phases { get; } = new();
 
     /* =========================
        Timer
@@ -86,7 +71,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void Tick()
     {
-        if (currentIndex < 0 || session == null)
+        if (session == null || currentIndex < 0)
             return;
 
         remainingTime -= TimeSpan.FromSeconds(1);
@@ -106,51 +91,6 @@ public partial class MainWindowViewModel : ViewModelBase
        Commands
        ========================= */
 
-    /*[RelayCommand]
-    private void LoadPreset()
-    {
-        timer?.Stop();
-        IsPaused = false;
-        IsSessionRunning = false;
-        PauseResumeText = "Pause";
-
-        if (string.IsNullOrWhiteSpace(SelectedPresetName))
-        {
-            StatusText = "Select a preset first.";
-            return;
-        }
-
-        var presetPath = Path.Combine(
-            AppContext.BaseDirectory,
-            "Presets",
-            SelectedPresetName
-        );
-
-        if (!File.Exists(presetPath))
-        {
-            StatusText = $"Preset not found: {SelectedPresetName}";
-            return;
-        }
-
-        var preset = PresetLoader.Load(presetPath);
-        var loadedSession = PracticeSession.FromPreset(preset);
-
-        Phases.Clear();
-        foreach (var p in loadedSession.Phases)
-            Phases.Add(p);
-
-        session = loadedSession;
-        currentIndex = -1;
-
-        TotalDurationText = $"Total: {session.GetTotalDuration()}";
-        CurrentPhaseName = "—";
-        PhaseCounterText = $"Phase: 0/{session.Phases.Count}";
-        RemainingTimeText = "00:00";
-        StatusText = "Preset loaded. Ready to start.";
-
-        OnPropertyChanged(nameof(CanStartSession));
-    } */
-
     [RelayCommand]
     private void StartSession()
     {
@@ -163,22 +103,23 @@ public partial class MainWindowViewModel : ViewModelBase
         // Build a fresh session from the current UI list
         var newSession = new PracticeSession();
         foreach (var p in Phases)
-            newSession.AddPhase(new Phase { Name = p.Name, DurationMinutes = p.DurationMinutes });
+        {
+            newSession.AddPhase(new Phase
+            {
+                Name = p.Name,
+                DurationMinutes = p.DurationMinutes
+            });
+        }
 
         session = newSession;
-        currentIndex = -1;
-
+        currentIndex = 0;
 
         PlayPhaseSound();
 
-        //IsPaused = false;
         IsSessionRunning = true;
-        //PauseResumeText = "Pause";
         OnPropertyChanged(nameof(CanStartSession));
 
-        currentIndex = 0;
         CurrentPhaseName = session.Phases[currentIndex].Name;
-
         remainingTime = TimeSpan.FromMinutes(session.Phases[currentIndex].DurationMinutes);
         RemainingTimeText = remainingTime.ToString(@"mm\:ss");
 
@@ -186,11 +127,7 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = "Running.";
 
         timer?.Stop();
-        
-        timer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromSeconds(1)
-        };
+        timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         timer.Tick += (_, _) => Tick();
         timer.Start();
     }
@@ -206,15 +143,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (currentIndex >= session.Phases.Count)
         {
-            timer?.Stop();
-            IsSessionRunning = false;
-
-            CurrentPhaseName = "Done!";
-            PhaseCounterText = $"Phase: {session.Phases.Count}/{session.Phases.Count}";
-            RemainingTimeText = "00:00";
-            StatusText = "Session finished.";
-
-            OnPropertyChanged(nameof(CanStartSession));
+            FinishSession();
             return;
         }
 
@@ -226,35 +155,17 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = "Running.";
     }
 
-   /* [RelayCommand]
-    private void RestartExercise()
-    {
-        if (session == null || currentIndex < 0 || currentIndex >= session.Phases.Count)
-            return;
-
-        remainingTime = TimeSpan.FromMinutes(session.Phases[currentIndex].DurationMinutes);
-        RemainingTimeText = remainingTime.ToString(@"mm\:ss");
-
-        IsPaused = false;
-        PauseResumeText = "Pause";
-
-        timer?.Stop();
-        timer?.Start();
-
-        StatusText = "Running.";
-        PlayPhaseSound();
-    } */
-
     [RelayCommand]
     private void StopSession()
     {
         timer?.Stop();
-        session = null;
-        IsSessionRunning = false;
-        //IsPaused = false;
-        //PauseResumeText = "Pause";
+        timer = null;
 
+        session = null;
         currentIndex = -1;
+
+        IsSessionRunning = false;
+
         CurrentPhaseName = "—";
         PhaseCounterText = "Phase: —";
         RemainingTimeText = "00:00";
@@ -264,81 +175,6 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateTotals();
     }
 
-    /*[RelayCommand]
-    private void TogglePause()
-    {
-        if (!IsSessionRunning)
-            return;
-
-        if (IsPaused)
-        {
-            timer?.Start();
-            IsPaused = false;
-            PauseResumeText = "Pause";
-            StatusText = "Running.";
-        }
-        else
-        {
-            timer?.Stop();
-            IsPaused = true;
-            PauseResumeText = "Resume";
-            StatusText = "Paused.";
-        }
-    } */
-
-    /* =========================
-       Sound
-       ========================= */
-
-    private async void PlayPhaseSound()
-    {
-        try
-        {
-            var path = Path.Combine(
-                AppContext.BaseDirectory,
-                "Assets",
-                "Sounds",
-                "phase.wav"
-            );
-
-            await audioPlayer.Play(path);
-        }
-        catch
-        {
-            // Sound playback failure is non-critical
-        }
-    }
-
-    /* =========================
-       Presets
-       ========================= */
-
-   /* private void RefreshPresetList()
-    {
-        PresetNames.Clear();
-
-        var presetsDir = Path.Combine(AppContext.BaseDirectory, "Presets");
-        if (!Directory.Exists(presetsDir))
-            return;
-
-        foreach (var file in Directory.GetFiles(presetsDir, "*.json"))
-            PresetNames.Add(Path.GetFileName(file));
-
-        // Start with no selection (user must pick)
-        SelectedPresetName = null;
-    } */
-
-    /* partial void OnSelectedPresetNameChanged(string? value)
-    {
-        if (isInitializing)
-            return;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return;
-
-        LoadPreset();
-    } */
-    
     private bool CanAddExercise()
     {
         if (IsSessionRunning)
@@ -367,20 +203,16 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var phase = new Phase
+        Phases.Add(new Phase
         {
             Name = name,
             DurationMinutes = minutes
-        };
+        });
 
-        // Update UI list (ListBox)
-        Phases.Add(phase);
-
-        // Invalidate current session so it gets rebuilt from the UI list on Start
+        // Editing invalidates any previous built session
         session = null;
         currentIndex = -1;
 
-        // Clear inputs
         NewExerciseName = string.Empty;
         NewExerciseMinutesText = string.Empty;
 
@@ -388,12 +220,10 @@ public partial class MainWindowViewModel : ViewModelBase
         RemainingTimeText = "00:00";
         CurrentPhaseName = "—";
 
-
-        StatusText = $"Exercise added: {phase.Name} ({phase.DurationMinutes} min)";
-
+        StatusText = $"Exercise added: {name} ({minutes} min)";
         OnPropertyChanged(nameof(CanStartSession));
     }
-    
+
     private bool CanRemoveExercise()
     {
         return !IsSessionRunning && SelectedExercise != null;
@@ -410,7 +240,6 @@ public partial class MainWindowViewModel : ViewModelBase
         Phases.Remove(SelectedExercise);
         SelectedExercise = null;
 
-        // Editing invalidates the running session
         session = null;
         currentIndex = -1;
 
@@ -423,7 +252,32 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = $"Removed: {removedName}";
     }
 
-    
+    /* =========================
+       Helpers
+       ========================= */
+
+    private void FinishSession()
+    {
+        timer?.Stop();
+
+        IsSessionRunning = false;
+
+        CurrentPhaseName = "Done!";
+        RemainingTimeText = "00:00";
+
+        if (session != null)
+            PhaseCounterText = $"Phase: {session.Phases.Count}/{session.Phases.Count}";
+        else
+            PhaseCounterText = "Phase: —";
+
+        StatusText = "Session finished.";
+
+        session = null;
+        currentIndex = -1;
+
+        OnPropertyChanged(nameof(CanStartSession));
+    }
+
     private void UpdateTotals()
     {
         var totalMinutes = 0;
@@ -434,9 +288,24 @@ public partial class MainWindowViewModel : ViewModelBase
         PhaseCounterText = $"Phase: 0/{Phases.Count}";
     }
 
+    private async void PlayPhaseSound()
+    {
+        try
+        {
+            var path = System.IO.Path.Combine(
+                AppContext.BaseDirectory,
+                "Assets",
+                "Sounds",
+                "phase.wav"
+            );
 
-
-
+            await audioPlayer.Play(path);
+        }
+        catch
+        {
+            // Sound playback failure is non-critical
+        }
+    }
 }
 
 
