@@ -1,8 +1,3 @@
-<video src="assets/practice-timer-demo.mov"
-       controls
-       width="800">
-</video>
-
 # Practice Timer (MVP)
 
 A simple desktop practice timer built with **C#**, **Avalonia UI**, and **MVVM**.
