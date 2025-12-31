@@ -1,6 +1,6 @@
 ## 🎥 Demo
 
-[![Practice Timer Demo](PracticeTimer.Gui/Assets/practice-timer-demo.png)](PracticeTimer.Gui/Assets/practice-timer-demo.mp4)
+[![Practice Timer Demo](PracticeTimer.Gui/Assets/practice-timer-demo.png)](https://github.com/Malte95/PracticeTimer/releases/download/v1.0-demo/practice-timer-demo.mp4)
 
 Click the image to watch the demo video.
 
