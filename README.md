@@ -1,6 +1,10 @@
-[![Practice Timer Demo](./PracticeTimer.Gui/Assets/practice-timer-demo.png)](./PracticeTimer.Gui/Assets/practice-timer-demo.mp4)
+## 🎥 Demo
 
-🎥 Demo video: [practice-timer-demo.mp4](./PracticeTimer.Gui/Assets/practice-timer-demo.mp4)
+[![Practice Timer Demo](PracticeTimer.Gui/Assets/practice-timer-demo.png)]
+(PracticeTimer.Gui/Assets/practice-timer-demo.mp4)
+
+Click the image to watch the demo video.
+
 
 
 # Practice Timer (MVP)
