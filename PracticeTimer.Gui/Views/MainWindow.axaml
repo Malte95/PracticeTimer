@@ -10,158 +10,194 @@
         x:DataType="vm:MainWindowViewModel"
         Title="PracticeTimer">
 
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
 
-    <StackPanel Margin="20"
-                Spacing="12"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
+  <StackPanel Margin="20"
+              Spacing="14"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Width="520">
 
-        <!-- App title -->
-        <TextBlock FontSize="24"
-                   Text="PracticeTimer"
-                   HorizontalAlignment="Center"/>
+    <!-- Title -->
+    <TextBlock Text="PracticeTimer"
+               FontSize="26"
+               FontWeight="SemiBold"
+               HorizontalAlignment="Center"/>
 
-        <!-- =========================
-             (Optional) Presets - disabled for MVP
-             ========================= -->
-        <!--
-        <StackPanel Orientation="Horizontal" Spacing="8">
-            <TextBlock Text="Preset:" VerticalAlignment="Center"/>
-            <ComboBox Width="200"
-                      ItemsSource="{Binding PresetNames}"
-                      SelectedItem="{Binding SelectedPresetName}" />
-        </StackPanel>
-        -->
+    <!-- =========================
+         (Optional) Presets - disabled for MVP
+         ========================= -->
+    <!--
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <TextBlock Text="Preset:" VerticalAlignment="Center"/>
+      <ComboBox Width="240"
+                ItemsSource="{Binding PresetNames}"
+                SelectedItem="{Binding SelectedPresetName}"/>
+    </StackPanel>
+    -->
 
-        <!-- =========================
-             Add Exercise
-             ========================= -->
-<Border Padding="12"
-        CornerRadius="8"
-        BorderThickness="1"
-        HorizontalAlignment="Center">
+    <!-- Add Exercise -->
+    <Border Padding="12"
+            CornerRadius="10"
+            BorderThickness="1">
 
-    <Grid ColumnDefinitions="Auto,Auto,Auto"
-          ColumnSpacing="8"
-          VerticalAlignment="Center">
+      <StackPanel Spacing="10">
 
-        <TextBox Grid.Column="0"
-                 Width="220"
-                 Height="36"
-                 Watermark="Exercise name (e.g. Chords)"
-                 Text="{Binding NewExerciseName, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBlock Text="Add exercise"
+                   FontWeight="SemiBold"/>
 
-        <TextBox Grid.Column="1"
-                 Width="120"
-                 Height="36"
-                 Watermark="Minutes"
-                 Text="{Binding NewExerciseMinutesText, UpdateSourceTrigger=PropertyChanged}" />
+        <Grid ColumnDefinitions="*,120,Auto"
+              ColumnSpacing="8"
+              VerticalAlignment="Center">
 
-        <Button Grid.Column="2"
-                Content="Add"
+          <TextBox Grid.Column="0"
+                   Height="36"
+                   Watermark="Exercise name (e.g. Chords)"
+                   Text="{Binding NewExerciseName, UpdateSourceTrigger=PropertyChanged}"/>
+
+          <TextBox Grid.Column="1"
+                   Height="36"
+                   Watermark="Minutes"
+                   Text="{Binding NewExerciseMinutesText, UpdateSourceTrigger=PropertyChanged}"/>
+
+          <Button Grid.Column="2"
+                  Height="36"
+                  MinWidth="90"
+                  Content="Add"
+                  Command="{Binding AddExerciseCommand}"/>
+        </Grid>
+
+      </StackPanel>
+    </Border>
+
+    <!-- Actions -->
+    <Border Padding="12"
+            CornerRadius="10"
+            BorderThickness="1">
+
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto"
+            ColumnSpacing="8"
+            HorizontalAlignment="Center">
+
+        <Button Grid.Column="0"
                 Height="36"
                 MinWidth="90"
-                Command="{Binding AddExerciseCommand}" />
+                Content="Start"
+                Command="{Binding StartSessionCommand}"
+                IsEnabled="{Binding CanStartSession}"/>
 
-    </Grid>
-</Border>
+        <Button Grid.Column="1"
+                Height="36"
+                MinWidth="90"
+                Content="Next"
+                Command="{Binding NextPhaseCommand}"
+                IsEnabled="{Binding IsSessionRunning}"/>
 
+        <Button Grid.Column="2"
+                Height="36"
+                MinWidth="90"
+                Content="Stop"
+                Command="{Binding StopSessionCommand}"
+                IsEnabled="{Binding IsSessionRunning}"/>
 
-        <!-- =========================
-             Action buttons (aligned)
-             ========================= -->
-        <Grid HorizontalAlignment="Center"
-              ColumnDefinitions="Auto,Auto,Auto,Auto,Auto"
-              ColumnSpacing="8">
+        <Button Grid.Column="3"
+                Height="36"
+                MinWidth="110"
+                Content="Remove"
+                Command="{Binding RemoveExerciseCommand}"/>
+      </Grid>
+    </Border>
 
-            <Button Grid.Column="1"
-                    Content="Start"
-                    Height="36"
-                    MinWidth="90"
-                    Command="{Binding StartSessionCommand}"
-                    IsEnabled="{Binding CanStartSession}" />
+    <!-- =========================
+         (Optional) Pause / Restart - disabled for MVP
+         ========================= -->
+    <!--
+    <Border Padding="12" CornerRadius="10" BorderThickness="1">
+      <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8" HorizontalAlignment="Center">
+        <Button Grid.Column="0"
+                Height="36"
+                MinWidth="110"
+                Content="{Binding PauseResumeText}"
+                Command="{Binding TogglePauseCommand}"
+                IsEnabled="{Binding IsSessionRunning}"/>
 
-            <Button Grid.Column="2"
-                    Content="Next"
-                    Height="36"
-                    MinWidth="90"
-                    Command="{Binding NextPhaseCommand}"
-                    IsEnabled="{Binding IsSessionRunning}" />
+        <Button Grid.Column="1"
+                Height="36"
+                MinWidth="140"
+                Content="Restart Exercise"
+                Command="{Binding RestartExerciseCommand}"
+                IsEnabled="{Binding IsSessionRunning}"/>
+      </Grid>
+    </Border>
+    -->
 
-            <Button Grid.Column="3"
-                    Content="Stop"
-                    Height="36"
-                    MinWidth="90"
-                    Command="{Binding StopSessionCommand}"
-                    IsEnabled="{Binding IsSessionRunning}" />
+    <!-- Session Info -->
+    <Border Padding="12"
+            CornerRadius="10"
+            BorderThickness="1">
 
-            <Button Grid.Column="4"
-                    Content="Remove"
-                    Height="36"
-                    MinWidth="110"
-                    Command="{Binding RemoveExerciseCommand}" />
+      <StackPanel Spacing="6">
 
-        </Grid>
-
-        <!-- =========================
-             (Optional) Pause / Restart - disabled for MVP
-             ========================= -->
-        <!--
-        <Grid HorizontalAlignment="Center" ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
-            <Button Content="{Binding PauseResumeText}"
-                    Command="{Binding TogglePauseCommand}"
-                    IsEnabled="{Binding IsSessionRunning}" />
-
-            <Button Content="Restart Exercise"
-                    Command="{Binding RestartExerciseCommand}"
-                    IsEnabled="{Binding IsSessionRunning}" />
-        </Grid>
-        -->
-
-        <!-- =========================
-             Session info
-             ========================= -->
-        <TextBlock FontSize="18"
-                   Text="{Binding CurrentPhaseName}"
+        <TextBlock Text="{Binding CurrentPhaseName}"
+                   FontSize="18"
+                   FontWeight="SemiBold"
                    HorizontalAlignment="Center"/>
 
         <TextBlock Text="{Binding PhaseCounterText}"
                    HorizontalAlignment="Center"/>
 
-        <TextBlock FontSize="36"
-                   Text="{Binding RemainingTimeText}"
+        <TextBlock Text="{Binding RemainingTimeText}"
+                   FontSize="38"
+                   FontWeight="SemiBold"
                    HorizontalAlignment="Center"/>
 
         <TextBlock Text="{Binding TotalDurationText}"
                    HorizontalAlignment="Center"/>
+      </StackPanel>
+    </Border>
 
-        <!-- =========================
-             Phase list
-             ========================= -->
+    <!-- Exercise List -->
+    <Border Padding="12"
+            CornerRadius="10"
+            BorderThickness="1">
+
+      <StackPanel Spacing="10">
+
+        <TextBlock Text="Exercises"
+                   FontWeight="SemiBold"/>
+
         <ListBox ItemsSource="{Binding Phases}"
                  SelectedItem="{Binding SelectedExercise}"
-                 Width="380"
                  Height="220">
 
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="{Binding Name}" Width="240"/>
-                        <TextBlock Text="{Binding DurationMinutes}"/>
-                        <TextBlock Text=" min"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Grid ColumnDefinitions="*,Auto"
+                    ColumnSpacing="10">
+
+                <TextBlock Grid.Column="0"
+                           Text="{Binding Name}"
+                           TextTrimming="CharacterEllipsis"/>
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding DurationMinutes}"/>
+
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
 
         </ListBox>
 
-        <!-- Status -->
-        <TextBlock Text="{Binding StatusText}"
-                   HorizontalAlignment="Center"/>
+      </StackPanel>
+    </Border>
 
-    </StackPanel>
+    <!-- Status -->
+    <TextBlock Text="{Binding StatusText}"
+               Opacity="0.85"
+               HorizontalAlignment="Center"/>
+
+  </StackPanel>
 </Window>
 
