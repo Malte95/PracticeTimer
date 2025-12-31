@@ -1,4 +1,4 @@
-<video src="assets/practice-timer-demo.mp4"
+<video src="assets/practice-timer-demo.mov"
        controls
        width="800">
 </video>
